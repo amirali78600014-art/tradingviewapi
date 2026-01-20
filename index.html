@@ -121,19 +121,35 @@
         function startLivePrices() {
             if (priceInterval) clearInterval(priceInterval);
             
-            updateStatus('Starting live price updates...', 'loading');
+            updateStatus('🔄 Connecting to backend API...', 'loading');
             
-            priceInterval = setInterval(() => {
-                pairs.forEach(pair => {
-                    const priceData = generateMockPrice(pair);
-                    updatePriceDisplay(pair, priceData);
+            priceInterval = setInterval(async () => {
+                try {
+                    // Fetch real data from backend
+                    const response = await fetch('/prices');
+                    const result = await response.json();
                     
-                    // Update JSON output with latest price
-                    updateJsonOutput(priceData);
-                });
+                    if (result.success && result.data) {
+                        result.data.forEach(priceData => {
+                            const pair = pairs.find(p => p.symbol === priceData.symbol);
+                            if (pair) {
+                                updatePriceDisplay(pair, priceData);
+                            }
+                        });
+                        
+                        // Update JSON output with latest data
+                        updateJsonOutput(result.data[0]); // Show first pair's data
+                        
+                        // Update status only once
+                        if (!document.querySelector('.success')) {
+                            updateStatus('✅ Live backend data connected! Updating every 1 second', 'success');
+                        }
+                    }
+                } catch (error) {
+                    updateStatus('❌ Backend connection failed: ' + error.message, 'error');
+                    console.error('Backend error:', error);
+                }
             }, 1000);
-            
-            updateStatus('✅ Live prices started! Updating every 1 second', 'success');
         }
 
         function stopLivePrices() {
