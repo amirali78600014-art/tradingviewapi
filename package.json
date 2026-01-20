@@ -1,16 +1,20 @@
 {
   "name": "forex-api-server",
-  "version": "1.0.0",
-  "description": "Real-time forex data server",
-  "main": "forex-test-server.js",
+  "version": "2.0.0",
+  "description": "Real-time forex data API server for Vercel",
+  "main": "api/index.js",
   "scripts": {
-    "start": "node forex-test-server.js",
-    "dev": "node forex-test-server.js"
+    "start": "vercel dev",
+    "dev": "vercel dev",
+    "deploy": "vercel --prod"
   },
   "dependencies": {
     "ws": "^8.19.0"
   },
   "engines": {
-    "node": ">=14.0.0"
-  }
+    "node": ">=18.0.0"
+  },
+  "keywords": ["forex", "api", "trading", "real-time", "websocket"],
+  "author": "Your Name",
+  "license": "MIT"
 }
