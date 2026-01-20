@@ -1,0 +1,16 @@
+{
+  "name": "forex-api-server",
+  "version": "1.0.0",
+  "description": "Real-time forex data server",
+  "main": "forex-test-server.js",
+  "scripts": {
+    "start": "node forex-test-server.js",
+    "dev": "node forex-test-server.js"
+  },
+  "dependencies": {
+    "ws": "^8.19.0"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}

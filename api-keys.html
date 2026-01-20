@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Key Manager</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 40px 20px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #667eea;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .generate-section {
+            background: #f3f4f6;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+        button {
+            width: 100%;
+            padding: 15px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: #5568d3;
+        }
+        .new-key {
+            margin-top: 20px;
+            padding: 15px;
+            background: white;
+            border-radius: 10px;
+            display: none;
+        }
+        .new-key.show {
+            display: block;
+        }
+        .key-display {
+            font-family: monospace;
+            font-size: 1.1em;
+            color: #10b981;
+            word-break: break-all;
+            margin: 10px 0;
+        }
+        .keys-list {
+            margin-top: 30px;
+        }
+        .keys-list h2 {
+            color: #1f2937;
+            margin-bottom: 20px;
+        }
+        .key-item {
+            background: #f9fafb;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .key-text {
+            font-family: monospace;
+            color: #374151;
+        }
+        .copy-btn {
+            padding: 8px 15px;
+            background: #10b981;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9em;
+        }
+        .copy-btn:hover {
+            background: #059669;
+        }
+        .success-msg {
+            color: #10b981;
+            text-align: center;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔑 API Key Manager</h1>
+        
+        <div class="generate-section">
+            <button onclick="generateKey()">Generate New API Key</button>
+            <div class="new-key" id="newKeyBox">
+                <strong>Your New API Key:</strong>
+                <div class="key-display" id="newKey"></div>
+                <button class="copy-btn" onclick="copyNewKey()">Copy Key</button>
+                <div class="success-msg" id="copyMsg"></div>
+            </div>
+        </div>
+
+        <div class="keys-list">
+            <h2>Existing API Keys</h2>
+            <div id="keysList"></div>
+        </div>
+    </div>
+
+    <script>
+        async function generateKey() {
+            try {
+                const response = await fetch('http://localhost:3000/generate-key', {
+                    method: 'POST'
+                });
+                const data = await response.json();
+                
+                document.getElementById('newKey').textContent = data.apiKey;
+                document.getElementById('newKeyBox').classList.add('show');
+                
+                loadKeys();
+            } catch (error) {
+                alert('Error generating key: ' + error.message);
+            }
+        }
+
+        async function loadKeys() {
+            try {
+                const response = await fetch('http://localhost:3000/keys');
+                const data = await response.json();
+                
+                const keysList = document.getElementById('keysList');
+                keysList.innerHTML = '';
+                
+                data.keys.forEach(key => {
+                    const keyItem = document.createElement('div');
+                    keyItem.className = 'key-item';
+                    keyItem.innerHTML = `
+                        <span class="key-text">${key}</span>
+                        <button class="copy-btn" onclick="copyKey('${key}')">Copy</button>
+                    `;
+                    keysList.appendChild(keyItem);
+                });
+            } catch (error) {
+                console.error('Error loading keys:', error);
+            }
+        }
+
+        function copyNewKey() {
+            const key = document.getElementById('newKey').textContent;
+            copyToClipboard(key);
+            document.getElementById('copyMsg').textContent = '✓ Copied!';
+            setTimeout(() => {
+                document.getElementById('copyMsg').textContent = '';
+            }, 2000);
+        }
+
+        function copyKey(key) {
+            copyToClipboard(key);
+            alert('API Key copied to clipboard!');
+        }
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text);
+        }
+
+        // Load keys on page load
+        loadKeys();
+    </script>
+</body>
+</html>

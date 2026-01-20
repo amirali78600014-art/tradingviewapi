@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real-Time Forex Data Test</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .nav-bar {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+        }
+        .nav-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .nav-tab {
+            padding: 12px 24px;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            backdrop-filter: blur(5px);
+        }
+        .nav-tab:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-2px);
+        }
+        .nav-tab.active {
+            background: #667eea;
+            box-shadow: 0 4px 15px rgba(102,126,234,0.4);
+        }
+        .pair-filters {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .pair-filter {
+            padding: 8px 16px;
+            background: rgba(255,255,255,0.15);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: all 0.3s;
+        }
+        .pair-filter:hover {
+            background: rgba(255,255,255,0.25);
+        }
+        .pair-filter.active {
+            background: white;
+            color: #667eea;
+            border-color: white;
+        }
+        .auth-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        .auth-modal.hidden {
+            display: none;
+        }
+        .auth-box {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            max-width: 400px;
+            width: 90%;
+        }
+        .auth-box h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .auth-box input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            font-size: 1em;
+            margin-bottom: 15px;
+        }
+        .auth-box input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .auth-box button {
+            width: 100%;
+            padding: 15px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .auth-box button:hover {
+            background: #5568d3;
+        }
+        .auth-error {
+            color: #ef4444;
+            text-align: center;
+            margin-top: 10px;
+            font-size: 0.9em;
+        }
+        .auth-info {
+            background: #f3f4f6;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 0.9em;
+            color: #6b7280;
+        }
+        .auth-info strong {
+            color: #1f2937;
+        }
+        h1 {
+            color: white;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        .status {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+        .status.connected { color: #4ade80; }
+        .status.disconnected { color: #f87171; }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+        }
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            transition: transform 0.2s;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        .pair-name {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+        .price {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #1f2937;
+            margin: 10px 0;
+        }
+        .price.up { color: #10b981; }
+        .price.down { color: #ef4444; }
+        .details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 2px solid #e5e7eb;
+        }
+        .detail-item {
+            font-size: 0.9em;
+        }
+        .detail-label {
+            color: #6b7280;
+            font-weight: 600;
+        }
+        .detail-value {
+            color: #1f2937;
+            font-weight: bold;
+        }
+        .time {
+            text-align: center;
+            color: #6b7280;
+            font-size: 0.85em;
+            margin-top: 10px;
+        }
+        .update-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            background: #10b981;
+            border-radius: 50%;
+            margin-left: 10px;
+            animation: pulse 1s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+    </style>
+</head>
+<body>
+    <!-- API Key Authentication Modal -->
+    <div class="auth-modal" id="authModal">
+        <div class="auth-box">
+            <h2>🔐 API Key Required</h2>
+            <div class="auth-info">
+                <strong>Demo Keys:</strong><br>
+                • demo-key-123<br>
+                • test-key-456<br>
+                • live-key-789
+            </div>
+            <input type="text" id="apiKeyInput" placeholder="Enter your API Key" />
+            <button onclick="authenticate()">Connect</button>
+            <div class="auth-error" id="authError"></div>
+        </div>
+    </div>
+    <div class="container">
+        <h1>🔴 Real-Time Trading Data</h1>
+        <div class="status" id="status">Connecting...</div>
+        
+        <!-- Navigation Bar -->
+        <div class="nav-bar">
+            <div class="nav-tabs">
+                <button class="nav-tab active" onclick="showCategory('all')">All Markets</button>
+                <button class="nav-tab" onclick="showCategory('forex')">Forex</button>
+                <button class="nav-tab" onclick="showCategory('crypto')">Crypto</button>
+                <button class="nav-tab" onclick="showCategory('stocks')">Stocks</button>
+                <button class="nav-tab" onclick="showCategory('commodities')">Commodities</button>
+                <button class="nav-tab" onclick="showCategory('indices')">Indices</button>
+            </div>
+            <div class="pair-filters" id="pairFilters"></div>
+        </div>
+        
+        <div class="grid" id="grid"></div>
+    </div>
+
+    <script>
+        let ws = null;
+        const statusEl = document.getElementById('status');
+        const gridEl = document.getElementById('grid');
+        const authModal = document.getElementById('authModal');
+        const authError = document.getElementById('authError');
+        const pairFilters = document.getElementById('pairFilters');
+        const pairData = {};
+        let currentCategory = 'all';
+        let currentFilter = 'all';
+
+        // Define categories
+        const categories = {
+            forex: ['EURUSD', 'GBPUSD', 'USDJPY', 'AUDUSD', 'USDCAD', 'USDCHF', 'NZDUSD', 'EURGBP', 'EURJPY', 'GBPJPY'],
+            crypto: ['BTCUSDT', 'ETHUSDT', 'BNBUSDT', 'ADAUSDT', 'XRPUSDT', 'SOLUSDT', 'DOGEUSDT', 'MATICUSDT', 'LTCUSDT', 'LINKUSDT'],
+            stocks: ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA', 'META', 'NVDA', 'NFLX'],
+            commodities: ['XAUUSD', 'XAGUSD'],
+            indices: ['SPX500', 'DJI', 'IXIC']
+        };
+
+        function authenticate() {
+            const apiKey = document.getElementById('apiKeyInput').value.trim();
+            if (!apiKey) {
+                authError.textContent = 'Please enter an API key';
+                return;
+            }
+
+            authError.textContent = '';
+            statusEl.textContent = 'Connecting...';
+            connectWebSocket(apiKey);
+        }
+
+        function connectWebSocket(apiKey) {
+            ws = new WebSocket('ws://localhost:3001');
+
+            ws.onopen = () => {
+                ws.send(JSON.stringify({ type: 'auth', apiKey: apiKey }));
+            };
+
+            ws.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                
+                if (data.type === 'auth') {
+                    if (data.status === 'success') {
+                        authModal.classList.add('hidden');
+                        statusEl.textContent = '✅ Connected - Receiving Live Data';
+                        statusEl.className = 'status connected';
+                    } else {
+                        authError.textContent = data.message || 'Authentication failed';
+                        ws.close();
+                    }
+                } else if (data.type === 'price') {
+                    updatePairCard(data);
+                }
+            };
+
+            ws.onclose = () => {
+                statusEl.textContent = '❌ Disconnected';
+                statusEl.className = 'status disconnected';
+                authModal.classList.remove('hidden');
+            };
+
+            ws.onerror = () => {
+                authError.textContent = 'Connection error. Please try again.';
+            };
+        }
+
+        // Enter key support
+        document.getElementById('apiKeyInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') authenticate();
+        });
+
+        function updatePairCard(data) {
+            const prevPrice = pairData[data.pair]?.price;
+            pairData[data.pair] = data;
+
+            let card = document.getElementById(data.pair);
+            if (!card) {
+                card = createCard(data.pair);
+                gridEl.appendChild(card);
+            }
+
+            const priceEl = card.querySelector('.price');
+            priceEl.textContent = data.price.toFixed(5);
+            
+            if (prevPrice) {
+                priceEl.className = 'price ' + (data.price > prevPrice ? 'up' : 'down');
+            }
+
+            card.querySelector('.open-value').textContent = data.open.toFixed(5);
+            card.querySelector('.high-value').textContent = data.high.toFixed(5);
+            card.querySelector('.low-value').textContent = data.low.toFixed(5);
+            card.querySelector('.time').textContent = new Date(data.time).toLocaleTimeString();
+            
+            // Apply current filters
+            filterCards();
+        }
+
+        function showCategory(category) {
+            currentCategory = category;
+            
+            // Update active tab
+            document.querySelectorAll('.nav-tab').forEach(tab => tab.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // Update pair filters
+            updatePairFilters(category);
+            
+            // Filter cards
+            filterCards();
+        }
+
+        function updatePairFilters(category) {
+            pairFilters.innerHTML = '';
+            
+            // Add "All" filter
+            const allFilter = document.createElement('button');
+            allFilter.className = 'pair-filter active';
+            allFilter.textContent = 'All';
+            allFilter.onclick = () => showPairFilter('all');
+            pairFilters.appendChild(allFilter);
+            
+            if (category !== 'all' && categories[category]) {
+                categories[category].forEach(pair => {
+                    const filter = document.createElement('button');
+                    filter.className = 'pair-filter';
+                    filter.textContent = pair;
+                    filter.onclick = () => showPairFilter(pair);
+                    pairFilters.appendChild(filter);
+                });
+            }
+            
+            currentFilter = 'all';
+        }
+
+        function showPairFilter(filter) {
+            currentFilter = filter;
+            
+            // Update active filter
+            document.querySelectorAll('.pair-filter').forEach(f => f.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // Filter cards
+            filterCards();
+        }
+
+        function filterCards() {
+            const cards = document.querySelectorAll('.card');
+            
+            cards.forEach(card => {
+                const pairName = card.id;
+                let show = false;
+                
+                if (currentCategory === 'all') {
+                    show = currentFilter === 'all' || pairName === currentFilter;
+                } else {
+                    const categoryPairs = categories[currentCategory] || [];
+                    if (categoryPairs.includes(pairName)) {
+                        show = currentFilter === 'all' || pairName === currentFilter;
+                    }
+                }
+                
+                card.style.display = show ? 'block' : 'none';
+            });
+        }
+
+        // Initialize filters
+        updatePairFilters('all');
+
+        function createCard(pair) {
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.id = pair;
+            card.innerHTML = `
+                <div class="pair-name">${pair}<span class="update-indicator"></span></div>
+                <div class="price">--</div>
+                <div class="details">
+                    <div class="detail-item">
+                        <div class="detail-label">Open</div>
+                        <div class="detail-value open-value">--</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">High</div>
+                        <div class="detail-value high-value">--</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Low</div>
+                        <div class="detail-value low-value">--</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Last Update</div>
+                        <div class="detail-value time">--</div>
+                    </div>
+                </div>
+            `;
+            return card;
+        }
+    </script>
+</body>
+</html>
