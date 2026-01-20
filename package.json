@@ -8,13 +8,10 @@
     "dev": "vercel dev",
     "deploy": "vercel --prod"
   },
-  "dependencies": {
-    "ws": "^8.19.0"
-  },
   "engines": {
     "node": ">=18.0.0"
   },
-  "keywords": ["forex", "api", "trading", "real-time", "websocket"],
+  "keywords": ["forex", "api", "trading", "real-time"],
   "author": "Your Name",
   "license": "MIT"
 }

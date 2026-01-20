@@ -1,6 +1,4 @@
 const crypto = require('crypto');
-const fs = require('fs');
-const path = require('path');
 
 const VALID_API_KEYS = new Set([
   'demo-key-123',
@@ -13,58 +11,75 @@ function generateApiKey() {
 }
 
 module.exports = (req, res) => {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  try {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-  if (req.method === 'OPTIONS') {
-    res.status(200).end();
-    return;
-  }
+    if (req.method === 'OPTIONS') {
+      return res.status(200).end();
+    }
 
-  const { url, method } = req;
+    const url = req.url || '/';
+    const method = req.method || 'GET';
 
-  if (url === '/' || url === '/api') {
-    const htmlPath = path.join(process.cwd(), 'forex-test.html');
-    if (fs.existsSync(htmlPath)) {
-      const html = fs.readFileSync(htmlPath, 'utf8');
-      res.setHeader('Content-Type', 'text/html');
-      res.status(200).send(html);
-    } else {
-      res.status(200).json({
+    if (url === '/' || url === '/api') {
+      return res.status(200).json({
         message: 'Forex API Server is running',
         endpoints: {
           '/': 'Main page',
           '/admin': 'Admin panel',
           '/api/generate-key': 'Generate API Key (POST)',
-          '/api/keys': 'List API Keys (GET)'
+          '/api/keys': 'List API Keys (GET)',
+          '/ws': 'WebSocket info'
         },
-        status: 'active'
+        status: 'active',
+        timestamp: new Date().toISOString()
       });
     }
-  } else if (url === '/admin') {
-    const htmlPath = path.join(process.cwd(), 'api-keys.html');
-    if (fs.existsSync(htmlPath)) {
-      const html = fs.readFileSync(htmlPath, 'utf8');
-      res.setHeader('Content-Type', 'text/html');
-      res.status(200).send(html);
-    } else {
-      res.status(200).json({ message: 'Admin panel not found' });
+
+    if (url === '/admin') {
+      return res.status(200).json({
+        message: 'Admin Panel',
+        description: 'API Key Management',
+        availableKeys: Array.from(VALID_API_KEYS).length
+      });
     }
-  } else if (url === '/api/generate-key' && method === 'POST') {
-    const newKey = generateApiKey();
-    VALID_API_KEYS.add(newKey);
-    res.status(200).json({ 
-      apiKey: newKey, 
-      message: 'API Key generated successfully' 
+
+    if (url === '/api/generate-key' && method === 'POST') {
+      const newKey = generateApiKey();
+      VALID_API_KEYS.add(newKey);
+      return res.status(200).json({ 
+        apiKey: newKey, 
+        message: 'API Key generated successfully',
+        timestamp: new Date().toISOString()
+      });
+    }
+
+    if (url === '/api/keys' && method === 'GET') {
+      return res.status(200).json({ 
+        keys: Array.from(VALID_API_KEYS),
+        count: VALID_API_KEYS.size,
+        timestamp: new Date().toISOString()
+      });
+    }
+
+    if (url === '/favicon.ico') {
+      return res.status(204).end();
+    }
+
+    return res.status(404).json({ 
+      error: 'Not Found',
+      path: url,
+      timestamp: new Date().toISOString()
     });
-  } else if (url === '/api/keys' && method === 'GET') {
-    res.status(200).json({ 
-      keys: Array.from(VALID_API_KEYS) 
+
+  } catch (error) {
+    console.error('Server error:', error);
+    return res.status(500).json({ 
+      error: 'Internal Server Error',
+      message: error.message,
+      timestamp: new Date().toISOString()
     });
-  } else if (url === '/favicon.ico') {
-    res.status(204).end();
-  } else {
-    res.status(404).json({ error: 'Not Found' });
   }
 };

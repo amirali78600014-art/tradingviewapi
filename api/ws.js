@@ -1,1 +1,35 @@
-const WebSocket = require('ws');\n\nconst VALID_API_KEYS = new Set([\n  'demo-key-123',\n  'test-key-456', \n  'live-key-789'\n]);\n\nconst pairs = [\n  'EURUSD', 'GBPUSD', 'USDJPY', 'AUDUSD', 'USDCAD',\n  'USDCHF', 'NZDUSD', 'EURGBP', 'EURJPY', 'GBPJPY',\n  'XAUUSD', 'XAGUSD', 'BTCUSDT', 'ETHUSDT'\n];\n\nfunction generateMockData(pair) {\n  const basePrice = {\n    'EURUSD': 1.0850, 'GBPUSD': 1.2650, 'USDJPY': 149.50,\n    'AUDUSD': 0.6750, 'USDCAD': 1.3450, 'USDCHF': 0.8950,\n    'NZDUSD': 0.6150, 'EURGBP': 0.8580, 'EURJPY': 162.30,\n    'GBPJPY': 189.20, 'XAUUSD': 2025.50, 'XAGUSD': 24.85,\n    'BTCUSDT': 43250.00, 'ETHUSDT': 2650.00\n  }[pair] || 1.0000;\n  \n  const variation = (Math.random() - 0.5) * 0.01;\n  const price = basePrice + (basePrice * variation);\n  \n  return {\n    type: 'price',\n    pair: pair,\n    price: price.toFixed(pair.includes('JPY') ? 3 : 5),\n    open: (price * 0.999).toFixed(pair.includes('JPY') ? 3 : 5),\n    high: (price * 1.001).toFixed(pair.includes('JPY') ? 3 : 5),\n    low: (price * 0.998).toFixed(pair.includes('JPY') ? 3 : 5),\n    time: new Date().toISOString()\n  };\n}\n\nmodule.exports = (req, res) => {\n  if (req.method === 'GET') {\n    res.status(200).json({\n      message: 'WebSocket endpoint for real-time forex data',\n      usage: 'Connect via WebSocket and send auth message with API key',\n      pairs: pairs\n    });\n  } else {\n    res.status(405).json({ error: 'Method not allowed' });\n  }\n};
+module.exports = (req, res) => {
+  try {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+    if (req.method === 'GET') {
+      return res.status(200).json({
+        message: 'WebSocket endpoint for real-time forex data',
+        usage: 'Connect via WebSocket and send auth message with API key',
+        pairs: [
+          'EURUSD', 'GBPUSD', 'USDJPY', 'AUDUSD', 'USDCAD',
+          'USDCHF', 'NZDUSD', 'EURGBP', 'EURJPY', 'GBPJPY',
+          'XAUUSD', 'XAGUSD', 'BTCUSDT', 'ETHUSDT'
+        ],
+        status: 'available',
+        timestamp: new Date().toISOString()
+      });
+    }
+
+    return res.status(405).json({ 
+      error: 'Method not allowed',
+      allowed: ['GET'],
+      timestamp: new Date().toISOString()
+    });
+
+  } catch (error) {
+    console.error('WebSocket endpoint error:', error);
+    return res.status(500).json({ 
+      error: 'Internal Server Error',
+      message: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+};
