@@ -4,6 +4,46 @@
   publish = "."
 
 [[redirects]]
+  from = "/prices"
+  to = "/.netlify/functions/api/prices"
+  status = 200
+
+[[redirects]]
+  from = "/price/*"
+  to = "/.netlify/functions/api/price/:splat"
+  status = 200
+
+[[redirects]]
+  from = "/admin"
+  to = "/.netlify/functions/api/admin"
+  status = 200
+
+[[redirects]]
+  from = "/generate-key"
+  to = "/.netlify/functions/api/generate-key"
+  status = 200
+
+[[redirects]]
+  from = "/keys"
+  to = "/.netlify/functions/api/keys"
+  status = 200
+
+[[redirects]]
+  from = "/ws"
+  to = "/.netlify/functions/api/ws"
+  status = 200
+
+[[redirects]]
+  from = "/health"
+  to = "/.netlify/functions/api/health"
+  status = 200
+
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/api/:splat"
+  status = 200
+
+[[redirects]]
   from = "/*"
-  to = "/.netlify/functions/api"
+  to = "/index.html"
   status = 200

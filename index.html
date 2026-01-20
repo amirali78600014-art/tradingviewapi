@@ -125,8 +125,8 @@
             
             priceInterval = setInterval(async () => {
                 try {
-                    // Fetch real data from backend
-                    const response = await fetch('/prices');
+                    // Fetch real data from backend using direct function URL
+                    const response = await fetch('/.netlify/functions/api/prices');
                     const result = await response.json();
                     
                     if (result.success && result.data) {
@@ -142,7 +142,7 @@
                         
                         // Update status only once
                         if (!document.querySelector('.success')) {
-                            updateStatus('✅ Live backend data connected! Updating every 1 second', 'success');
+                            updateStatus('✅ Live backend data connected! Real server data updating every 1 second', 'success');
                         }
                     }
                 } catch (error) {
@@ -173,11 +173,12 @@
 
         async function testAllEndpoints() {
             const endpoints = [
-                { name: 'Main API', url: '/', method: 'GET' },
-                { name: 'Admin Panel', url: '/admin', method: 'GET' },
-                { name: 'List Keys', url: '/keys', method: 'GET' },
-                { name: 'WebSocket Info', url: '/ws', method: 'GET' },
-                { name: 'Health Check', url: '/health', method: 'GET' }
+                { name: 'Main API', url: '/.netlify/functions/api/', method: 'GET' },
+                { name: 'Admin Panel', url: '/.netlify/functions/api/admin', method: 'GET' },
+                { name: 'List Keys', url: '/.netlify/functions/api/keys', method: 'GET' },
+                { name: 'WebSocket Info', url: '/.netlify/functions/api/ws', method: 'GET' },
+                { name: 'Health Check', url: '/.netlify/functions/api/health', method: 'GET' },
+                { name: 'Live Prices', url: '/.netlify/functions/api/prices', method: 'GET' }
             ];
 
             updateStatus('🧪 Testing all endpoints...', 'loading');
@@ -203,7 +204,7 @@
             try {
                 updateStatus('🔑 Generating new API key...', 'loading');
                 
-                const response = await fetch('/generate-key', {
+                const response = await fetch('/.netlify/functions/api/generate-key', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' }
                 });
@@ -227,7 +228,7 @@
             updateStatus('🚀 Forex API Testing Interface Ready!', 'success');
             
             // Test health endpoint on load
-            fetch('/health')
+            fetch('/.netlify/functions/api/health')
                 .then(response => response.json())
                 .then(data => {
                     updateStatus('✅ API is healthy and running!', 'success');
