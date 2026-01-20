@@ -1,0 +1,6 @@
+name = "forex-api-server"
+main = "worker.js"
+compatibility_date = "2023-12-01"
+
+[env.production]
+name = "forex-api-server"
