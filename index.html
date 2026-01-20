@@ -3,80 +3,224 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Forex API Server</title>
+    <title>Forex API Server - Live Testing</title>
     <style>
-        body { font-family: Arial, sans-serif; max-width: 800px; margin: 50px auto; padding: 20px; }
-        .endpoint { background: #f5f5f5; padding: 15px; margin: 10px 0; border-radius: 5px; }
-        .method { color: #007acc; font-weight: bold; }
-        .url { color: #d73a49; }
+        body { font-family: Arial, sans-serif; max-width: 1200px; margin: 20px auto; padding: 20px; background: #f5f5f5; }
+        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 10px; margin-bottom: 20px; }
+        .container { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .panel { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .pair-item { background: #f8f9fa; padding: 15px; margin: 10px 0; border-radius: 8px; border-left: 4px solid #007acc; }
+        .price-display { font-size: 18px; font-weight: bold; color: #28a745; }
+        .test-btn { background: #007acc; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin: 5px; }
+        .test-btn:hover { background: #0056b3; }
+        .status { padding: 10px; border-radius: 5px; margin: 10px 0; }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        .loading { background: #fff3cd; color: #856404; }
+        .json-output { background: #2d3748; color: #e2e8f0; padding: 15px; border-radius: 5px; font-family: monospace; font-size: 12px; max-height: 300px; overflow-y: auto; }
+        .controls { margin-bottom: 20px; }
+        .pair-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px; }
     </style>
 </head>
 <body>
-    <h1>🚀 Forex API Server</h1>
-    <p>Real-time forex data API powered by Netlify Functions</p>
-    
-    <h2>📡 API Endpoints</h2>
-    
-    <div class="endpoint">
-        <span class="method">GET</span> <span class="url">/</span><br>
-        Main API information and status
+    <div class="header">
+        <h1>🚀 Forex API Server - Live Testing</h1>
+        <p>Real-time forex data API powered by Netlify Functions</p>
     </div>
-    
-    <div class="endpoint">
-        <span class="method">GET</span> <span class="url">/admin</span><br>
-        Admin panel for API key management
+
+    <div class="controls">
+        <button class="test-btn" onclick="testAllEndpoints()">🧪 Test All Endpoints</button>
+        <button class="test-btn" onclick="startLivePrices()">📈 Start Live Prices</button>
+        <button class="test-btn" onclick="stopLivePrices()">⏹️ Stop Live Prices</button>
+        <button class="test-btn" onclick="generateApiKey()">🔑 Generate API Key</button>
     </div>
-    
-    <div class="endpoint">
-        <span class="method">POST</span> <span class="url">/generate-key</span><br>
-        Generate new API key
+
+    <div class="container">
+        <div class="panel">
+            <h2>📡 API Endpoints Testing</h2>
+            <div id="endpoint-results"></div>
+        </div>
+
+        <div class="panel">
+            <h2>💱 Live Currency Pairs</h2>
+            <div class="pair-grid" id="currency-pairs"></div>
+        </div>
     </div>
-    
-    <div class="endpoint">
-        <span class="method">GET</span> <span class="url">/keys</span><br>
-        List all available API keys
+
+    <div class="panel" style="margin-top: 20px;">
+        <h2>📊 JSON Response Output</h2>
+        <div class="json-output" id="json-output">Waiting for API responses...</div>
     </div>
-    
-    <div class="endpoint">
-        <span class="method">GET</span> <span class="url">/ws</span><br>
-        WebSocket endpoint information
-    </div>
-    
-    <div class="endpoint">
-        <span class="method">GET</span> <span class="url">/health</span><br>
-        Health check endpoint
-    </div>
-    
-    <h2>🔑 Default API Keys</h2>
-    <ul>
-        <li><code>demo-key-123</code> - Demo access</li>
-        <li><code>test-key-456</code> - Testing purposes</li>
-        <li><code>live-key-789</code> - Live trading</li>
-    </ul>
-    
-    <h2>💱 Supported Currency Pairs</h2>
-    <p>EURUSD, GBPUSD, USDJPY, AUDUSD, USDCAD, USDCHF, NZDUSD, EURGBP, EURJPY, GBPJPY, XAUUSD, XAGUSD, BTCUSDT, ETHUSDT</p>
-    
+
     <script>
-        // Test API on page load
-        fetch('/health')
-            .then(response => response.json())
-            .then(data => {
-                console.log('API Health Check:', data);
-                document.body.insertAdjacentHTML('beforeend', 
-                    `<div style="background: #d4edda; padding: 10px; margin-top: 20px; border-radius: 5px;">
-                        ✅ API is healthy and running!
-                    </div>`
-                );
-            })
-            .catch(error => {
-                console.error('API Error:', error);
-                document.body.insertAdjacentHTML('beforeend', 
-                    `<div style="background: #f8d7da; padding: 10px; margin-top: 20px; border-radius: 5px;">
-                        ❌ API connection failed
-                    </div>`
-                );
-            });
+        const pairs = [
+            { symbol: 'FOREXCOM:EURUSD', metal: 'EUR', currency: 'USD', exchange: 'FOREXCOM', basePrice: 1.0850 },
+            { symbol: 'FOREXCOM:GBPUSD', metal: 'GBP', currency: 'USD', exchange: 'FOREXCOM', basePrice: 1.2650 },
+            { symbol: 'FOREXCOM:USDJPY', metal: 'USD', currency: 'JPY', exchange: 'FOREXCOM', basePrice: 149.50 },
+            { symbol: 'FOREXCOM:AUDUSD', metal: 'AUD', currency: 'USD', exchange: 'FOREXCOM', basePrice: 0.6750 },
+            { symbol: 'FOREXCOM:USDCAD', metal: 'USD', currency: 'CAD', exchange: 'FOREXCOM', basePrice: 1.3450 },
+            { symbol: 'FOREXCOM:USDCHF', metal: 'USD', currency: 'CHF', exchange: 'FOREXCOM', basePrice: 0.8950 },
+            { symbol: 'FOREXCOM:NZDUSD', metal: 'NZD', currency: 'USD', exchange: 'FOREXCOM', basePrice: 0.6150 },
+            { symbol: 'FOREXCOM:EURGBP', metal: 'EUR', currency: 'GBP', exchange: 'FOREXCOM', basePrice: 0.8580 },
+            { symbol: 'FOREXCOM:EURJPY', metal: 'EUR', currency: 'JPY', exchange: 'FOREXCOM', basePrice: 162.30 },
+            { symbol: 'FOREXCOM:GBPJPY', metal: 'GBP', currency: 'JPY', exchange: 'FOREXCOM', basePrice: 189.20 },
+            { symbol: 'FOREXCOM:XAUUSD', metal: 'XAU', currency: 'USD', exchange: 'FOREXCOM', basePrice: 2670.99 },
+            { symbol: 'FOREXCOM:XAGUSD', metal: 'XAG', currency: 'USD', exchange: 'FOREXCOM', basePrice: 30.85 },
+            { symbol: 'BINANCE:BTCUSDT', metal: 'BTC', currency: 'USDT', exchange: 'BINANCE', basePrice: 43250.00 },
+            { symbol: 'BINANCE:ETHUSDT', metal: 'ETH', currency: 'USDT', exchange: 'BINANCE', basePrice: 2650.00 }
+        ];
+
+        let priceInterval = null;
+        let currentPrices = {};
+
+        function initializePairs() {
+            const container = document.getElementById('currency-pairs');
+            container.innerHTML = pairs.map(pair => `
+                <div class="pair-item" id="pair-${pair.symbol.replace(':', '-')}">
+                    <div style="font-weight: bold; color: #007acc;">${pair.symbol}</div>
+                    <div class="price-display" id="price-${pair.symbol.replace(':', '-')}">Loading...</div>
+                    <div style="font-size: 12px; color: #666; margin-top: 5px;">
+                        Exchange: ${pair.exchange}<br>
+                        Last Update: <span id="time-${pair.symbol.replace(':', '-')}">--</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function generateMockPrice(pair) {
+            const variation = (Math.random() - 0.5) * 0.02; // 2% variation
+            const currentPrice = currentPrices[pair.symbol] || pair.basePrice;
+            const newPrice = currentPrice + (currentPrice * variation);
+            currentPrices[pair.symbol] = newPrice;
+            
+            return {
+                timestamp: Math.floor(Date.now() / 1000),
+                metal: pair.metal,
+                currency: pair.currency,
+                exchange: pair.exchange,
+                symbol: pair.symbol,
+                "current price": parseFloat(newPrice.toFixed(pair.symbol.includes('JPY') ? 3 : 5)),
+                "running price": parseFloat(newPrice.toFixed(pair.symbol.includes('JPY') ? 3 : 5))
+            };
+        }
+
+        function updatePriceDisplay(pair, priceData) {
+            const priceElement = document.getElementById(`price-${pair.symbol.replace(':', '-')}`);
+            const timeElement = document.getElementById(`time-${pair.symbol.replace(':', '-')}`);
+            
+            if (priceElement) {
+                priceElement.textContent = priceData['current price'];
+                priceElement.style.color = Math.random() > 0.5 ? '#28a745' : '#dc3545';
+            }
+            
+            if (timeElement) {
+                timeElement.textContent = new Date().toLocaleTimeString();
+            }
+        }
+
+        function startLivePrices() {
+            if (priceInterval) clearInterval(priceInterval);
+            
+            updateStatus('Starting live price updates...', 'loading');
+            
+            priceInterval = setInterval(() => {
+                pairs.forEach(pair => {
+                    const priceData = generateMockPrice(pair);
+                    updatePriceDisplay(pair, priceData);
+                    
+                    // Update JSON output with latest price
+                    updateJsonOutput(priceData);
+                });
+            }, 1000);
+            
+            updateStatus('✅ Live prices started! Updating every 1 second', 'success');
+        }
+
+        function stopLivePrices() {
+            if (priceInterval) {
+                clearInterval(priceInterval);
+                priceInterval = null;
+                updateStatus('⏹️ Live prices stopped', 'error');
+            }
+        }
+
+        function updateJsonOutput(data) {
+            const output = document.getElementById('json-output');
+            output.textContent = JSON.stringify(data, null, 2);
+            output.scrollTop = output.scrollHeight;
+        }
+
+        function updateStatus(message, type) {
+            const results = document.getElementById('endpoint-results');
+            results.innerHTML = `<div class="status ${type}">${message}</div>` + results.innerHTML;
+        }
+
+        async function testAllEndpoints() {
+            const endpoints = [
+                { name: 'Main API', url: '/', method: 'GET' },
+                { name: 'Admin Panel', url: '/admin', method: 'GET' },
+                { name: 'List Keys', url: '/keys', method: 'GET' },
+                { name: 'WebSocket Info', url: '/ws', method: 'GET' },
+                { name: 'Health Check', url: '/health', method: 'GET' }
+            ];
+
+            updateStatus('🧪 Testing all endpoints...', 'loading');
+
+            for (const endpoint of endpoints) {
+                try {
+                    const response = await fetch(endpoint.url);
+                    const data = await response.json();
+                    
+                    if (response.ok) {
+                        updateStatus(`✅ ${endpoint.name}: Success`, 'success');
+                        updateJsonOutput(data);
+                    } else {
+                        updateStatus(`❌ ${endpoint.name}: Failed (${response.status})`, 'error');
+                    }
+                } catch (error) {
+                    updateStatus(`❌ ${endpoint.name}: Error - ${error.message}`, 'error');
+                }
+            }
+        }
+
+        async function generateApiKey() {
+            try {
+                updateStatus('🔑 Generating new API key...', 'loading');
+                
+                const response = await fetch('/generate-key', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    updateStatus(`✅ New API Key: ${data.apiKey}`, 'success');
+                    updateJsonOutput(data);
+                } else {
+                    updateStatus(`❌ Failed to generate API key`, 'error');
+                }
+            } catch (error) {
+                updateStatus(`❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            initializePairs();
+            updateStatus('🚀 Forex API Testing Interface Ready!', 'success');
+            
+            // Test health endpoint on load
+            fetch('/health')
+                .then(response => response.json())
+                .then(data => {
+                    updateStatus('✅ API is healthy and running!', 'success');
+                    updateJsonOutput(data);
+                })
+                .catch(error => {
+                    updateStatus('❌ API connection failed', 'error');
+                });
+        });
     </script>
 </body>
 </html>
