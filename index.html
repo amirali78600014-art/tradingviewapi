@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Forex API Server</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 50px auto; padding: 20px; }
+        .endpoint { background: #f5f5f5; padding: 15px; margin: 10px 0; border-radius: 5px; }
+        .method { color: #007acc; font-weight: bold; }
+        .url { color: #d73a49; }
+    </style>
+</head>
+<body>
+    <h1>🚀 Forex API Server</h1>
+    <p>Real-time forex data API powered by Netlify Functions</p>
+    
+    <h2>📡 API Endpoints</h2>
+    
+    <div class="endpoint">
+        <span class="method">GET</span> <span class="url">/</span><br>
+        Main API information and status
+    </div>
+    
+    <div class="endpoint">
+        <span class="method">GET</span> <span class="url">/admin</span><br>
+        Admin panel for API key management
+    </div>
+    
+    <div class="endpoint">
+        <span class="method">POST</span> <span class="url">/generate-key</span><br>
+        Generate new API key
+    </div>
+    
+    <div class="endpoint">
+        <span class="method">GET</span> <span class="url">/keys</span><br>
+        List all available API keys
+    </div>
+    
+    <div class="endpoint">
+        <span class="method">GET</span> <span class="url">/ws</span><br>
+        WebSocket endpoint information
+    </div>
+    
+    <div class="endpoint">
+        <span class="method">GET</span> <span class="url">/health</span><br>
+        Health check endpoint
+    </div>
+    
+    <h2>🔑 Default API Keys</h2>
+    <ul>
+        <li><code>demo-key-123</code> - Demo access</li>
+        <li><code>test-key-456</code> - Testing purposes</li>
+        <li><code>live-key-789</code> - Live trading</li>
+    </ul>
+    
+    <h2>💱 Supported Currency Pairs</h2>
+    <p>EURUSD, GBPUSD, USDJPY, AUDUSD, USDCAD, USDCHF, NZDUSD, EURGBP, EURJPY, GBPJPY, XAUUSD, XAGUSD, BTCUSDT, ETHUSDT</p>
+    
+    <script>
+        // Test API on page load
+        fetch('/health')
+            .then(response => response.json())
+            .then(data => {
+                console.log('API Health Check:', data);
+                document.body.insertAdjacentHTML('beforeend', 
+                    `<div style="background: #d4edda; padding: 10px; margin-top: 20px; border-radius: 5px;">
+                        ✅ API is healthy and running!
+                    </div>`
+                );
+            })
+            .catch(error => {
+                console.error('API Error:', error);
+                document.body.insertAdjacentHTML('beforeend', 
+                    `<div style="background: #f8d7da; padding: 10px; margin-top: 20px; border-radius: 5px;">
+                        ❌ API connection failed
+                    </div>`
+                );
+            });
+    </script>
+</body>
+</html>
